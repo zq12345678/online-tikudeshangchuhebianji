@@ -381,3 +381,248 @@ Content-Type: application/json
 ### 8. [Admin] 尝试删除 ID 为 999 的不存在的知识点
 DELETE http://localhost:3001/api/admin/knowledge-points/999
 Content-Type: application/json
+
+
+
+###
+### --- 知识点管理 (读取功能测试) ---
+###
+
+### 准备工作: 先创建一个新的知识点 "Data Structures"
+# 运行这个请求，然后记下返回的 id
+POST http://localhost:3001/api/admin/knowledge-points
+Content-Type: application/json
+
+{
+  "name": "Data Structures",
+  "subjectId": 1
+}
+
+### Test 9: 获取所有知识点的列表
+# 预期结果: 200 OK，返回一个包含所有知识点的 JSON 数组
+GET http://localhost:3001/api/admin/knowledge-points
+
+
+### Test 10: 获取刚刚创建的知识点的详细信息
+# !! 注意: 请将下面的 14 替换为您上一步创建时返回的真实 ID !!
+# 预期结果: 200 OK，返回 "Data Structures" 这个知识点的 JSON 对象
+GET http://localhost:3001/api/admin/knowledge-points/14
+
+
+### Test 11: 尝试获取一个不存在的知识点
+# 预期结果: 404 Not Found，返回错误信息
+GET http://localhost:3001/api/admin/knowledge-points/9999
+
+
+###
+### --- 知识点管理 (修改功能测试) ---
+###
+
+### 准备工作: 先创建一个新的知识点 "Algorithms"
+# 运行这个请求，然后记下返回的 id，比如 15
+POST http://localhost:3001/api/admin/knowledge-points
+Content-Type: application/json
+
+{
+  "name": "Algorithms",
+  "subjectId": 1
+}
+
+### Test 12: 更新刚刚创建的知识点的名称
+# !! 注意: 请将下面的 15 替换为您上一步创建时返回的真实 ID !!
+# 预期结果: 200 OK，返回更新后的知识点对象，name 应该是 "Algorithms (Advanced)"
+PUT http://localhost:3001/api/admin/knowledge-points/15
+Content-Type: application/json
+
+{
+  "name": "Algorithms (Advanced)"
+}
+
+
+### Test 13: 尝试更新一个不存在的知识点
+# 预期结果: 404 Not Found，返回错误信息
+PUT http://localhost:3001/api/admin/knowledge-points/9999
+Content-Type: application/json
+
+{
+  "name": "This should fail"
+}
+
+###
+### --- 权限系统测试 (Authorization) ---
+###
+
+### Test 14: 管理员登录
+# 目的: 使用您的管理员账号登录，获取一个具备 ADMIN 权限的 JWT Token。
+# 预期结果: 200 OK，返回一个 token。
+# !! 注意: 请将下面的邮箱和密码替换为您自己的管理员账号凭证 !!
+# @name adminLogin
+POST http://localhost:3001/api/auth/login
+Content-Type: application/json
+
+{
+  "email": "554639616@qq.com",
+  "password": "123456"
+}
+
+### Test 15: 使用管理员 Token 访问受保护的路由
+# 目的: 使用刚刚获取的管理员 Token，尝试访问一个管理员专属的 API。
+# 预期结果: 200 OK，成功获取知识点列表。
+GET http://localhost:3001/api/admin/knowledge-points
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImNtZThmeWxxNTAwMDJzYW11aTgwbXJmZ3YiLCJuYW1lIjoiRWRyaWMiLCJlbWFpbCI6IjU1NDYzOTYxNkBxcS5jb20iLCJyb2xlIjoiQURNSU4iLCJpYXQiOjE3NTUwNzYwMzgsImV4cCI6MTc1NTE2MjQzOH0.GvjakjtPtpAccEx8fp47VocrKhsQUWvn24OEBpE4XCc
+
+
+### Test 16: 无 Token 访问受保护的路由
+# 目的: 不提供任何 Token，直接尝试访问管理员 API。
+# 预期结果: 401 Unauthorized (未授权)，返回 "未提供 Token" 的错误信息。
+GET http://localhost:3001/api/admin/knowledge-points
+
+
+### Test 17: 注册一个新的普通学生用户
+# 目的: 创建一个角色为 STUDENT 的新用户，用于后续的权限测试。
+# 预期结果: 201 Created。
+POST http://localhost:3001/api/auth/register
+Content-Type: application/json
+
+{
+  "name": "Test Student",
+  "email": "student@example.com",
+  "password": "password123"
+}
+
+### Test 18: 普通学生用户登录
+# 目的: 使用刚刚创建的学生账号登录，获取一个不具备 ADMIN 权限的 Token。
+# 预期结果: 200 OK。
+# @name studentLogin
+POST http://localhost:3001/api/auth/login
+Content-Type: application/json
+
+{
+  "email": "student@example.com",
+  "password": "password123"
+}
+
+### Test 19: 使用学生 Token 访问受保护的路由
+# 目的: 使用学生用户的 Token，尝试访问管理员专属的 API。
+# 预期结果: 403 Forbidden (禁止访问)，返回 "权限不足" 的错误信息。
+GET http://localhost:3001/api/admin/knowledge-points
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImNtZTlxOG13MDAwMDBzYW9nOTM1OHprb3MiLCJuYW1lIjoiVGVzdCBTdHVkZW50IiwiZW1haWwiOiJzdHVkZW50QGV4YW1wbGUuY29tIiwicm9sZSI6IlNUVURFTlQiLCJpYXQiOjE3NTUwNzYxNDAsImV4cCI6MTc1NTE2MjU0MH0.SaX1CfBHRYMW7w6o2F26n5R9TOU_DOBjFJ1g37KeEeA
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+########################################################################
+
+
+
+### 准备工作: 注册一个新的用户账号
+# @name registerAdmin
+POST http://localhost:3001/api/auth/register
+Content-Type: application/json
+
+{
+  "name": "Admin User",
+  "email": "554639616@qq.com",
+  "password": "123456"
+}
+
+
+
+
+###
+### --- 在线考试平台 API 测试 (最终强化版) ---
+###
+
+### ===================================================
+### Part 1: 登录并设置全局 Token
+### ===================================================
+
+### Test 1: 管理员登录
+# @name adminLogin
+POST http://localhost:3001/api/auth/login
+Content-Type: application/json
+
+{
+  "email": "554639616@qq.com",
+  "password": "123456"
+}
+
+### 核心优化：将获取到的 Token 保存到一个全局变量中
+@token = {{adminLogin.response.body.token}}
+
+
+### ===================================================
+### Part 2: 基础数据管理
+### ===================================================
+
+### Test 2: 创建一个学科 "Computer Science"
+POST http://localhost:3001/api/admin/subjects
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "name": "Computer Science",
+  "examBoardId": 1
+}
+
+
+### Test 3: 创建一个知识点 "Recursion"
+POST http://localhost:3001/api/admin/knowledge-points
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "name": "Recursion",
+  "subjectId": 1
+}
+
+### ===================================================
+### Part 3: 题库管理
+### ===================================================
+
+### Test 4: 在题库中创建一个新题目
+POST http://localhost:3001/api/admin/questions
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "subjectId": 1,
+  "questionText": "What is the base case in a recursive function?",
+  "questionType": "MULTIPLE_CHOICE",
+  "explanation": "The base case is the condition that stops the recursion.",
+  "options": [
+    { "text": "The part that performs the recursive call.", "isCorrect": false },
+    { "text": "The condition that stops the recursion.", "isCorrect": true }
+  ],
+  "knowledgePointIds": [1]
+}
+
+### Test 5: 获取题库中的所有题目
+GET http://localhost:3001/api/admin/questions
+Authorization: Bearer {{token}}
+
+
+###
+### --- 步骤一: 注册一个新的管理员预备账号 ---
+###
+# @name registerAdminUser
+POST http://localhost:3001/api/auth/register
+Content-Type: application/json
+
+{
+  "name": "Admin User",
+  "email": "554639616@qq.com",
+  "password": "123456"
+}

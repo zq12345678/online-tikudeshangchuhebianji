@@ -1,0 +1,58 @@
+### 准备工作 Part 1: 创建一个考试局 (ExamBoard)
+# @name createExamBoard
+POST http://localhost:3001/api/admin/examboards
+Content-Type: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImNtZTl6djZubTAwMDBzYThpZ2ZjcXN5bGciLCJuYW1lIjoiQWRtaW4gVXNlciIsImVtYWlsIjoiNTU0NjM5NjE2QHFxLmNvbSIsInJvbGUiOiJBRE1JTiIsImlhdCI6MTc1NTA5MjAxOSwiZXhwIjoxNzU1MTc4NDE5fQ.PFgGDYOvPp_GYnEk9QJPqdojC4JiXEe8SSW4pStHy7U
+
+{
+  "name": "AP"
+}
+
+
+###
+### --- 权限系统最终验证测试 ---
+###
+
+### ===================================================
+### Part 1: 登录并设置 Token
+### ===================================================
+
+### Test 1: 管理员登录
+# @name adminLogin
+POST http://localhost:3001/api/auth/login
+Content-Type: application/json
+
+{
+  "email": "554639616@qq.com",
+  "password": "123456"
+}
+
+### 将 Token 保存到变量中
+@token = {{adminLogin.response.body.token}}
+
+
+### ===================================================
+### Part 2: 验证受保护的路由
+### ===================================================
+
+### Test 2: (验证 Subjects API) 创建一个新学科
+# 使用上面获取的 @token 变量
+POST http://localhost:3001/api/admin/subjects
+Content-Type: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImNtZTl6djZubTAwMDBzYThpZ2ZjcXN5bGciLCJuYW1lIjoiQWRtaW4gVXNlciIsImVtYWlsIjoiNTU0NjM5NjE2QHFxLmNvbSIsInJvbGUiOiJBRE1JTiIsImlhdCI6MTc1NTA5MjAxOSwiZXhwIjoxNzU1MTc4NDE5fQ.PFgGDYOvPp_GYnEk9QJPqdojC4JiXEe8SSW4pStHy7U
+
+{
+  "name": "Final Test Subject",
+  "examBoardId": 1
+}
+
+### Test 3: (验证 Knowledge Points API) 创建一个新知识点
+# 同样使用 @token 变量
+POST http://localhost:3001/api/admin/knowledge-points
+Content-Type: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImNtZTl6djZubTAwMDBzYThpZ2ZjcXN5bGciLCJuYW1lIjoiQWRtaW4gVXNlciIsImVtYWlsIjoiNTU0NjM5NjE2QHFxLmNvbSIsInJvbGUiOiJBRE1JTiIsImlhdCI6MTc1NTA5MjAxOSwiZXhwIjoxNzU1MTc4NDE5fQ.PFgGDYOvPp_GYnEk9QJPqdojC4JiXEe8SSW4pStHy7U
+
+{
+  "name": "Final Test Knowledge Point",
+  "subjectId": 2
+}

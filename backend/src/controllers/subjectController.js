@@ -1,36 +1,39 @@
 // backend/src/controllers/subjectController.js
 const prisma = require('../config/prismaClient');
 
-// 1. 创建一个新学科，并关联到已有的考试局
 const createSubject = async (req, res) => {
     try {
-        // 从请求体中获取学科名称和它所属的考试局ID
         const { name, examBoardId } = req.body;
-
-        // 基础验证
         if (!name || !examBoardId) {
             return res.status(400).json({ error: '学科名称 (name) 和考试局ID (examBoardId) 不能为空' });
         }
-
         const newSubject = await prisma.subject.create({
             data: {
                 name: name,
-                examBoardId: parseInt(examBoardId), // 确保ID是整数类型
+                examBoardId: parseInt(examBoardId),
             },
         });
-
         res.status(201).json(newSubject);
     } catch (error) {
-        console.error(error); // 在控制台打印错误，方便调试
+        console.error(error);
         res.status(500).json({ error: '创建学科时发生错误' });
     }
 };
 
-// 2. 获取所有学科，并包含其所属的考试局信息
+// --- 核心修改：升级 getAllSubjects 函数以支持筛选 ---
 const getAllSubjects = async (req, res) => {
     try {
+        const { examBoardId } = req.query; // 从 URL query 中获取 examBoardId
+
+        // 创建一个查询条件对象
+        const whereClause = {};
+        if (examBoardId) {
+            // 如果提供了 examBoardId，就将其加入查询条件
+            whereClause.examBoardId = parseInt(examBoardId);
+        }
+
         const subjects = await prisma.subject.findMany({
-            // 使用 "include" 来同时加载关联的 examBoard 数据
+            where: whereClause, // 应用查询条件
             include: {
                 examBoard: true,
             },

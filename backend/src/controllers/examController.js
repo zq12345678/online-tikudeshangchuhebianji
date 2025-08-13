@@ -2,12 +2,11 @@
 const prisma = require('../config/prismaClient');
 
 const createExam = async (req, res) => {
-    // ... (此函数保持不变)
     try {
-        const { title, durationMinutes, subjectId } = req.body;
+        const { title, durationMinutes, subjectId, examType } = req.body; // 添加 examType
 
         if (!title || !durationMinutes || !subjectId) {
-            return res.status(400).json({ error: '标题(title), 时长(durationMinutes), 和学科ID(subjectId)均不能为空' });
+            return res.status(400).json({ error: '标题、时长和学科ID均不能为空' });
         }
 
         const newExam = await prisma.exam.create({
@@ -15,6 +14,7 @@ const createExam = async (req, res) => {
                 title: title,
                 durationMinutes: parseInt(durationMinutes),
                 subjectId: parseInt(subjectId),
+                examType: examType || 'PRACTICE', // 如果没提供，默认为 PRACTICE
             },
         });
 
@@ -26,7 +26,6 @@ const createExam = async (req, res) => {
 };
 
 const getAllExams = async (req, res) => {
-    // ... (此函数保持不变)
     try {
         const exams = await prisma.exam.findMany({
             include: {
@@ -44,7 +43,6 @@ const getAllExams = async (req, res) => {
     }
 };
 
-// --- 新增函数 开始 ---
 const getExamById = async (req, res) => {
     try {
         const { examId } = req.params;
@@ -52,15 +50,15 @@ const getExamById = async (req, res) => {
             where: {
                 id: examId,
             },
-            // 这里是关键：在查找试卷的同时，加载所有关联的问题，
-            // 并且对于每个问题，如果它是选择题，再加载它所有的选项
             include: {
                 questions: {
                     orderBy: {
-                        order: 'asc', // 按题号升序排序
+                        // 注意：Question 模型上已没有 order 字段，这里需要调整
+                        // 暂时按 id 排序
+                        id: 'asc',
                     },
                     include: {
-                        multipleChoiceOptions: true, // 加载选择题选项
+                        multipleChoiceOptions: true,
                     },
                 },
             },
@@ -76,10 +74,9 @@ const getExamById = async (req, res) => {
         res.status(500).json({ error: '获取试卷详情时发生错误' });
     }
 };
-// --- 新增函数 结束 ---
 
 module.exports = {
     createExam,
     getAllExams,
-    getExamById, // <-- 导出新函数
+    getExamById,
 };

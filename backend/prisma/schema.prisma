@@ -1,3 +1,5 @@
+// backend/prisma/schema.prisma (最终完整版)
+
 generator client {
   provider = "prisma-client-js"
 }
@@ -7,45 +9,54 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-// 1. 用户模型
-model User {
-  id            String    @id @default(cuid())
-  email         String    @unique
-  passwordHash  String
-  name          String?
-  createdAt     DateTime  @default(now())
-  submissions   ExamSubmission[]
+enum Role {
+  STUDENT
+  ADMIN
 }
 
-// 2. 考试局模型
+model User {
+  id           String           @id @default(cuid())
+  email        String           @unique
+  passwordHash String
+  name         String?
+  role         Role             @default(STUDENT)
+  createdAt    DateTime         @default(now())
+  submissions  ExamSubmission[]
+}
+
 model ExamBoard {
-  id      Int       @id @default(autoincrement())
-  name    String    @unique // e.g., "AP", "A-Level", "IB"
+  id       Int       @id @default(autoincrement())
+  name     String    @unique
   subjects Subject[]
 }
 
-// 3. 学科模型
 model Subject {
-  id              Int       @id @default(autoincrement())
-  name            String    @unique // e.g., "AP Computer Science A"
-  examBoard       ExamBoard @relation(fields: [examBoardId], references: [id])
+  id              Int              @id @default(autoincrement())
+  name            String           @unique
+  examBoard       ExamBoard        @relation(fields: [examBoardId], references: [id])
   examBoardId     Int
   exams           Exam[]
   knowledgePoints KnowledgePoint[]
+  questions       Question[]
 }
 
-// 4. 试卷模型
+enum ExamType {
+  PRACTICE
+  MOCK_EXAM
+}
+
 model Exam {
-  id              String    @id @default(cuid())
+  id              String           @id @default(cuid())
   title           String
   durationMinutes Int
-  subject         Subject   @relation(fields: [subjectId], references: [id])
+  subject         Subject          @relation(fields: [subjectId], references: [id])
   subjectId       Int
-  questions       Question[]
+  examType        ExamType         @default(PRACTICE)
+  createdAt       DateTime         @default(now()) // 用于排序的创建时间字段
+  questions       Question[]       @relation("ExamToQuestion")
   submissions     ExamSubmission[]
 }
 
-// 题目类型的枚举
 enum QuestionType {
   MULTIPLE_CHOICE
   FREE_RESPONSE
@@ -54,31 +65,32 @@ enum QuestionType {
   DIAGRAM
 }
 
-// 5. 题目模型
 model Question {
-  id                    String    @id @default(cuid())
-  exam                  Exam      @relation(fields: [examId], references: [id])
-  examId                String
-  questionText          String
-  stimulusText          String?
-  questionType          QuestionType
-  layoutType            String    @default("STACKED") // "STACKED" or "SPLIT"
-  order                 Int
-  multipleChoiceOptions MultipleChoiceOption[]
-  userAnswers           UserAnswer[]
-  knowledgePoints       KnowledgePoint[]
+  id                      String                 @id @default(cuid())
+  subject                 Subject                @relation(fields: [subjectId], references: [id])
+  subjectId               Int
+  questionText            String
+  stimulusText            String?
+  questionType            QuestionType
+  layoutType              String                 @default("STACKED")
+  explanation             String?
+  isRealExam              Boolean                @default(false)
+  realExamYear            Int?
+  realExamMonth           Int?
+  multipleChoiceOptions   MultipleChoiceOption[]
+  userAnswers             UserAnswer[]
+  knowledgePoints         KnowledgePoint[]
+  exams                   Exam[]                 @relation("ExamToQuestion")
 }
 
-// 6. 知识点模型
 model KnowledgePoint {
-  id        Int      @id @default(autoincrement())
-  name      String   @unique // e.g., "Java Loops", "Recursion"
-  subject   Subject  @relation(fields: [subjectId], references: [id])
+  id        Int        @id @default(autoincrement())
+  name      String     @unique
+  subject   Subject    @relation(fields: [subjectId], references: [id])
   subjectId Int
   questions Question[]
 }
 
-// 7. 选择题选项模型
 model MultipleChoiceOption {
   id         String   @id @default(cuid())
   question   Question @relation(fields: [questionId], references: [id], onDelete: Cascade)
@@ -87,24 +99,22 @@ model MultipleChoiceOption {
   isCorrect  Boolean
 }
 
-// 8. 用户提交答卷模型
 model ExamSubmission {
-  id          String   @id @default(cuid())
-  user        User     @relation(fields: [userId], references: [id])
+  id          String       @id @default(cuid())
+  user        User         @relation(fields: [userId], references: [id])
   userId      String
-  exam        Exam     @relation(fields: [examId], references: [id])
+  exam        Exam         @relation(fields: [examId], references: [id])
   examId      String
   score       Float?
-  submittedAt DateTime @default(now())
+  submittedAt DateTime     @default(now())
   userAnswers UserAnswer[]
 }
 
-// 9. 用户单个答案模型
 model UserAnswer {
-  id              String   @id @default(cuid())
-  submission      ExamSubmission @relation(fields: [submissionId], references: [id], onDelete: Cascade)
-  submissionId    String
-  question        Question @relation(fields: [questionId], references: [id], onDelete: Cascade)
-  questionId      String
-  answerContent   String
+  id            String         @id @default(cuid())
+  submission    ExamSubmission @relation(fields: [submissionId], references: [id], onDelete: Cascade)
+  submissionId  String
+  question      Question       @relation(fields: [questionId], references: [id], onDelete: Cascade)
+  questionId    String
+  answerContent String
 }

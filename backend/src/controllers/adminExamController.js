@@ -1,10 +1,18 @@
 // backend/src/controllers/adminExamController.js
 const prisma = require('../config/prismaClient');
 
-// 获取所有试卷 (给管理员看，可能包含未发布等信息)
+// --- 核心修改：升级 getAllExams 函数以支持筛选 ---
 const getAllExams = async (req, res) => {
     try {
+        const { subjectId } = req.query; // 从 URL query 中获取 subjectId
+
+        const whereClause = {};
+        if (subjectId) {
+            whereClause.subjectId = parseInt(subjectId);
+        }
+
         const exams = await prisma.exam.findMany({
+            where: whereClause,
             include: { subject: true },
             orderBy: { title: 'asc' },
         });
@@ -14,7 +22,6 @@ const getAllExams = async (req, res) => {
     }
 };
 
-// 获取单个试卷的详细信息
 const getExamById = async (req, res) => {
     try {
         const { id } = req.params;
@@ -26,15 +33,15 @@ const getExamById = async (req, res) => {
     }
 };
 
-// 创建一个新试卷 (这个和我们之前做的类似)
 const createExam = async (req, res) => {
     try {
-        const { title, durationMinutes, subjectId } = req.body;
+        const { title, durationMinutes, subjectId, examType } = req.body;
         const newExam = await prisma.exam.create({
             data: {
                 title,
                 durationMinutes: parseInt(durationMinutes),
                 subjectId: parseInt(subjectId),
+                examType: examType || 'PRACTICE',
             },
         });
         res.status(201).json(newExam);
@@ -43,17 +50,17 @@ const createExam = async (req, res) => {
     }
 };
 
-// 更新一个已存在的试卷
 const updateExam = async (req, res) => {
     try {
         const { id } = req.params;
-        const { title, durationMinutes, subjectId } = req.body;
+        const { title, durationMinutes, subjectId, examType } = req.body;
         const updatedExam = await prisma.exam.update({
             where: { id },
             data: {
                 title,
                 durationMinutes: parseInt(durationMinutes),
                 subjectId: parseInt(subjectId),
+                examType,
             },
         });
         res.status(200).json(updatedExam);
@@ -62,15 +69,12 @@ const updateExam = async (req, res) => {
     }
 };
 
-// 删除一个试卷
 const deleteExam = async (req, res) => {
     try {
         const { id } = req.params;
         await prisma.exam.delete({ where: { id } });
-        res.status(204).send(); // 204 No Content 表示成功删除
+        res.status(204).send();
     } catch (error) {
-        // 需要注意：如果试卷下还有题目，直接删除会失败，Prisma会报错
-        // 真实项目中需要先删除所有关联的题目
         res.status(500).json({ error: '删除试卷失败' });
     }
 };

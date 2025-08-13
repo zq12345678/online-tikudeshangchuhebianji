@@ -1,10 +1,10 @@
 // backend/src/controllers/authController.js
 const prisma = require('../config/prismaClient');
 const bcrypt = require('bcryptjs');
-const jwt = require('jsonwebtoken'); // 1. 导入 jwt 库
+const jwt = require('jsonwebtoken');
 
+// ... registerUser 函数保持不变 ...
 const registerUser = async (req, res) => {
-    // ... (此函数保持不变)
     try {
         const { email, password, name } = req.body;
         if (!email || !password || !name) {
@@ -17,8 +17,8 @@ const registerUser = async (req, res) => {
         const salt = await bcrypt.genSalt(10);
         const passwordHash = await bcrypt.hash(password, salt);
         const newUser = await prisma.user.create({
-            data: { email, name, passwordHash },
-            select: { id: true, email: true, name: true, createdAt: true }
+            data: { email, name, passwordHash, role: 'STUDENT' },
+            select: { id: true, email: true, name: true, role: true, createdAt: true }
         });
         res.status(201).json(newUser);
     } catch (error) {
@@ -27,59 +27,48 @@ const registerUser = async (req, res) => {
     }
 };
 
-// --- 新增登录函数 开始 ---
+
 const loginUser = async (req, res) => {
     try {
         const { email, password } = req.body;
-
-        // 1. 基础验证
         if (!email || !password) {
             return res.status(400).json({ error: '邮箱和密码不能为空' });
         }
-
-        // 2. 查找用户
         const user = await prisma.user.findUnique({
             where: { email: email },
         });
-
         if (!user) {
-            return res.status(401).json({ error: '无效的邮箱或密码' }); // 401 Unauthorized
+            return res.status(401).json({ error: '无效的邮箱或密码' });
         }
-
-        // 3. 验证密码
-        // 使用 bcrypt.compare 对比用户输入的密码和数据库中存储的哈希密码
         const isMatch = await bcrypt.compare(password, user.passwordHash);
-
         if (!isMatch) {
             return res.status(401).json({ error: '无效的邮箱或密码' });
         }
 
-        // 4. 密码匹配成功，生成 JWT Token
         const payload = {
             id: user.id,
             name: user.name,
             email: user.email,
+            role: user.role,
         };
 
-        // 使用一个密钥(secret)来签发 token
-        // !! 重要：在真实项目中，这个密钥必须存放在 .env 文件中，绝不能硬编码 !!
-        const token = jwt.sign(payload, 'YOUR_JWT_SECRET', { expiresIn: '1d' }); // token 有效期为 1 天
+        // --- 新增诊断日志 ---
+        console.log("准备签发Token，使用的密钥是:", process.env.JWT_SECRET);
+
+        const token = jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: '1d' });
 
         res.status(200).json({
             message: '登录成功',
             token: token,
-            user: { id: user.id, name: user.name, email: user.email },
+            user: { id: user.id, name: user.name, email: user.email, role: user.role },
         });
-
     } catch (error) {
         console.error("登录失败:", error);
         res.status(500).json({ error: '登录过程中发生内部错误' });
     }
 };
-// --- 新增登录函数 结束 ---
-
 
 module.exports = {
     registerUser,
-    loginUser, // <-- 导出新函数
+    loginUser,
 };
