@@ -1,6 +1,6 @@
 // frontend/src/context/AuthContext.jsx
 import React, { createContext, useState, useEffect } from 'react';
-import { jwtDecode } from 'jwt-decode'; // 我们需要一个小工具来解码 token
+import jwt_decode from 'jwt-decode'; // 我们需要一个小工具来解码 token
 
 // 1. 安装 jwt-decode 库
 // 请在终端的 frontend 目录下运行: npm install jwt-decode
@@ -17,7 +17,7 @@ export const AuthProvider = ({ children }) => {
         if (storedToken) {
             try {
                 // --- 核心修改：解码 token 并设置 user ---
-                const decodedUser = jwtDecode(storedToken);
+                const decodedUser = jwt_decode(storedToken);
                 setUser(decodedUser);
                 setToken(storedToken);
             } catch (error) {
@@ -31,7 +31,7 @@ export const AuthProvider = ({ children }) => {
 
     const login = (jwtToken) => {
         try {
-            const decodedUser = jwtDecode(jwtToken);
+            const decodedUser = jwt_decode(jwtToken);
             localStorage.setItem('authToken', jwtToken);
             setToken(jwtToken);
             setUser(decodedUser);

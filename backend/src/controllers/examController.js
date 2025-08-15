@@ -1,12 +1,13 @@
-// backend/src/controllers/examController.js
+// backend/src/controllers/examController.js (临时回退版本)
 const prisma = require('../config/prismaClient');
 
 const createExam = async (req, res) => {
     try {
-        const { title, durationMinutes, subjectId, examType } = req.body; // 添加 examType
+        // 在回退版本中，我们只处理最基本的数据
+        const { title, durationMinutes, subjectId } = req.body;
 
         if (!title || !durationMinutes || !subjectId) {
-            return res.status(400).json({ error: '标题、时长和学科ID均不能为空' });
+            return res.status(400).json({ error: '标题(title), 时长(durationMinutes), 和学科ID(subjectId)均不能为空' });
         }
 
         const newExam = await prisma.exam.create({
@@ -14,7 +15,6 @@ const createExam = async (req, res) => {
                 title: title,
                 durationMinutes: parseInt(durationMinutes),
                 subjectId: parseInt(subjectId),
-                examType: examType || 'PRACTICE', // 如果没提供，默认为 PRACTICE
             },
         });
 
@@ -27,18 +27,11 @@ const createExam = async (req, res) => {
 
 const getAllExams = async (req, res) => {
     try {
-        const exams = await prisma.exam.findMany({
-            include: {
-                subject: {
-                    include: {
-                        examBoard: true,
-                    },
-                },
-            },
-        });
+        // --- 核心修改：移除所有复杂的 include 和 orderBy，只进行最基础的查询 ---
+        const exams = await prisma.exam.findMany();
         res.status(200).json(exams);
     } catch (error) {
-        console.error(error);
+        console.error("获取试卷列表失败 (回退模式):", error);
         res.status(500).json({ error: '获取试卷列表时发生错误' });
     }
 };
@@ -50,13 +43,9 @@ const getExamById = async (req, res) => {
             where: {
                 id: examId,
             },
+            // 在回退版本中，也简化查询
             include: {
                 questions: {
-                    orderBy: {
-                        // 注意：Question 模型上已没有 order 字段，这里需要调整
-                        // 暂时按 id 排序
-                        id: 'asc',
-                    },
                     include: {
                         multipleChoiceOptions: true,
                     },

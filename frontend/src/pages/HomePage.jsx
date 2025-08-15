@@ -60,7 +60,7 @@ const HomePage = () => {
                         <Link to={`/exam/${exam.id}`} key={exam.id} style={{ textDecoration: 'none', color: 'inherit' }}>
                             <div className="exam-card">
                                 <h3>{exam.title}</h3>
-                                <p>{exam.subject.examBoard.name} - {exam.subject.name}</p>
+                                <p>{exam.subject?.examBoard?.name || '未知考试板块'} - {exam.subject?.name || '未知科目'}</p>
                                 <span>时长：{exam.durationMinutes} 分钟</span>
                             </div>
                         </Link>

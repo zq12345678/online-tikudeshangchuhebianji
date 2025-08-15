@@ -1,4 +1,4 @@
-// backend/src/controllers/subjectController.js
+// backend/src/controllers/subjectController.js (稳定版)
 const prisma = require('../config/prismaClient');
 
 const createSubject = async (req, res) => {
@@ -20,23 +20,23 @@ const createSubject = async (req, res) => {
     }
 };
 
-// --- 核心修改：升级 getAllSubjects 函数以支持筛选 ---
 const getAllSubjects = async (req, res) => {
     try {
-        const { examBoardId } = req.query; // 从 URL query 中获取 examBoardId
+        const { examBoardId } = req.query;
 
-        // 创建一个查询条件对象
         const whereClause = {};
         if (examBoardId) {
-            // 如果提供了 examBoardId，就将其加入查询条件
             whereClause.examBoardId = parseInt(examBoardId);
         }
 
         const subjects = await prisma.subject.findMany({
-            where: whereClause, // 应用查询条件
+            where: whereClause,
             include: {
                 examBoard: true,
             },
+            orderBy: {
+                createdAt: 'desc'
+            }
         });
         res.status(200).json(subjects);
     } catch (error) {

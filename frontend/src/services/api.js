@@ -1,4 +1,4 @@
-// frontend/src/services/api.js
+// frontend/src/services/api.js (稳定版)
 import axios from 'axios';
 
 const apiClient = axios.create({
@@ -28,21 +28,28 @@ export const registerUser = (userData) => apiClient.post('/auth/register', userD
 export const loginUser = (credentials) => apiClient.post('/auth/login', credentials);
 
 // --- Admin Services ---
-export const getAllKnowledgePoints = () => apiClient.get('/admin/knowledge-points');
-export const getQuestionsForExam = (examId) => apiClient.get(`/admin/exams/${examId}/questions`);
-export const createQuestion = (examId, questionData) => apiClient.post(`/admin/exams/${examId}/questions`, questionData);
-export const updateQuestion = (examId, questionId, questionData) => apiClient.put(`/admin/exams/${examId}/questions/${questionId}`, questionData);
-export const deleteQuestion = (examId, questionId) => apiClient.delete(`/admin/exams/${examId}/questions/${questionId}`);
+export const adminCreateExamBoard = (examBoardData) => apiClient.post('/admin/examboards', examBoardData);
 export const adminGetAllExamBoards = () => apiClient.get('/admin/examboards');
-export const adminGetAllSubjects = (examBoardId) => apiClient.get('/admin/subjects', { params: { examBoardId } });
 export const adminCreateSubject = (subjectData) => apiClient.post('/admin/subjects', subjectData);
-export const adminGetAllExams = (subjectId) => apiClient.get('/admin/exams', { params: { subjectId } });
 export const adminCreateExam = (examData) => apiClient.post('/admin/exams', examData);
 
-// --- 核心修改：新增创建考试局的 Admin API ---
-export const adminCreateExamBoard = (examBoardData) => {
-    return apiClient.post('/admin/examboards', examBoardData);
+export const adminGetAllSubjects = (examBoardId) => {
+    return apiClient.get('/admin/subjects', { params: { examBoardId } });
+};
+export const adminGetAllExams = (subjectId) => {
+    return apiClient.get('/admin/exams', { params: { subjectId } });
 };
 
+// ... 其他 Admin API 保持不变 ...
+export const getAllKnowledgePoints = () => apiClient.get('/admin/knowledge-points');
+export const adminGetAllQuestions = (subjectId) => apiClient.get('/admin/questions', { params: { subjectId } });
+export const adminGetQuestionById = (questionId) => apiClient.get(`/admin/questions/${questionId}`);
+export const adminCreateQuestion = (questionData) => apiClient.post('/admin/questions', questionData);
+export const adminUpdateQuestion = (questionId, questionData) => apiClient.put(`/admin/questions/${questionId}`, questionData);
+export const adminDeleteQuestion = (questionId) => apiClient.delete(`/admin/questions/${questionId}`);
+
+// 添加缺失的函数
+export const getQuestionsForExam = (examId) => apiClient.get(`/admin/exams/${examId}/questions`);
+export const deleteQuestion = (examId, questionId) => apiClient.delete(`/admin/exams/${examId}/questions/${questionId}`);
 
 export default apiClient;

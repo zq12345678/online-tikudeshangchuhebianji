@@ -1,11 +1,9 @@
-// frontend/src/pages/admin/AdminExams.jsx
+// frontend/src/pages/admin/AdminExams.jsx (稳定版)
 import React, { useState, useEffect, useCallback } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { adminGetAllExams, adminCreateExam } from '../../services/api';
 import './Admin.css';
 
-// --- 核心修正：将 CreateExamModal 组件从 AdminExams 内部“搬家”到外面 ---
-// 现在它是一个独立的、顶级的组件，不再会被父组件的渲染所影响。
 const CreateExamModal = ({ subjectId, onClose, onExamCreated }) => {
     const [title, setTitle] = useState('');
     const [durationMinutes, setDurationMinutes] = useState(90);
@@ -79,8 +77,6 @@ const CreateExamModal = ({ subjectId, onClose, onExamCreated }) => {
     );
 };
 
-
-// AdminExams 组件现在只负责自己的逻辑，不再包含 CreateExamModal 的定义
 const AdminExams = () => {
     const [searchParams] = useSearchParams();
     const subjectId = searchParams.get('subjectId');
@@ -126,6 +122,8 @@ const AdminExams = () => {
     if (loading) return <div className="admin-container"><h1>正在加载...</h1></div>;
     if (error) return <div className="admin-container"><h1 className="error-message">{error}</h1></div>;
 
+    const formatDate = (dateString) => new Date(dateString).toLocaleDateString();
+
     return (
         <>
             <div className="admin-container">
@@ -146,6 +144,10 @@ const AdminExams = () => {
                             <Link to={`/admin/exams/${exam.id}/questions`} key={exam.id} className="dashboard-card">
                                 <h2>{exam.title}</h2>
                                 <p>时长: {exam.durationMinutes} 分钟</p>
+                                <div className="card-meta">
+                                    <span>创建者: {exam.createdBy.name}</span>
+                                    <span>{formatDate(exam.createdAt)}</span>
+                                </div>
                             </Link>
                         ))}
                         {practiceExams.length === 0 && <p>该学科下暂无单元练习。</p>}
@@ -159,6 +161,10 @@ const AdminExams = () => {
                             <Link to={`/admin/exams/${exam.id}/questions`} key={exam.id} className="dashboard-card">
                                 <h2>{exam.title}</h2>
                                 <p>时长: {exam.durationMinutes} 分钟</p>
+                                <div className="card-meta">
+                                    <span>创建者: {exam.createdBy.name}</span>
+                                    <span>{formatDate(exam.createdAt)}</span>
+                                </div>
                             </Link>
                         ))}
                         {mockExams.length === 0 && <p>该学科下暂无模拟考试。</p>}
@@ -175,5 +181,4 @@ const AdminExams = () => {
         </>
     );
 };
-
 export default AdminExams;

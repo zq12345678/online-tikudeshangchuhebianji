@@ -1,4 +1,4 @@
-// frontend/src/App.jsx
+// frontend/src/App.jsx (最终完整版)
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
@@ -16,7 +16,9 @@ import AdminKnowledgePoints from './pages/admin/AdminKnowledgePoints';
 import AdminExamQuestions from './pages/admin/AdminExamQuestions';
 import AdminExamBoards from './pages/admin/AdminExamBoards';
 import AdminSubjects from './pages/admin/AdminSubjects';
-import AdminExams from './pages/admin/AdminExams'; // 导入新页面
+import AdminExams from './pages/admin/AdminExams';
+//import AdminQuestionBank from './pages/admin/AdminQuestionBank';
+//import AdminQuestionForm from './pages/admin/AdminQuestionForm';
 
 function App() {
     return (
@@ -37,9 +39,11 @@ function App() {
                     <Route path="/admin/knowledge-points" element={<AdminKnowledgePoints />} />
                     <Route path="/admin/examboards" element={<AdminExamBoards />} />
                     <Route path="/admin/subjects" element={<AdminSubjects />} />
-                    {/* --- 核心修改：添加试卷管理页面的路由 --- */}
                     <Route path="/admin/exams" element={<AdminExams />} />
                     <Route path="/admin/exams/:examId/questions" element={<AdminExamQuestions />} />
+                    {/*<Route path="/admin/questions" element={<AdminQuestionBank />} />*/}
+                    {/*<Route path="/admin/questions/new" element={<AdminQuestionForm />} />*/}
+                    {/*<Route path="/admin/questions/edit/:questionId" element={<AdminQuestionForm />} />*/}
                 </Routes>
             </Router>
         </AuthProvider>
