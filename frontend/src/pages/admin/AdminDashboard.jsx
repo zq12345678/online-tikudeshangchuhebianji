@@ -10,10 +10,13 @@ const AdminDashboard = () => {
                 <h1>管理员仪表盘</h1>
             </header>
             <div className="dashboard-grid">
+                <Link to="/admin/questions" className="dashboard-card">
+                    <h2>题库管理</h2>
+                    <p>创建、编辑和管理系统中的所有题目。</p>
+                </Link>
                 <Link to="/admin/examboards" className="dashboard-card">
-                    <h2>试卷与题库管理</h2>
-                    {/* 核心修正：将 -> 替换为 &gt; */}
-                    <p>按考试局 &gt; 学科 &gt; 试卷的流程管理题目内容。</p>
+                    <h2>试卷管理</h2>
+                    <p>按 考试局 > 学科 > 试卷 的流程，从题库中选题组卷。</p>
                 </Link>
                 <Link to="/admin/knowledge-points" className="dashboard-card">
                     <h2>知识点管理</h2>

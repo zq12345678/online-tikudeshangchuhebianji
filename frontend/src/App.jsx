@@ -17,8 +17,8 @@ import AdminExamQuestions from './pages/admin/AdminExamQuestions';
 import AdminExamBoards from './pages/admin/AdminExamBoards';
 import AdminSubjects from './pages/admin/AdminSubjects';
 import AdminExams from './pages/admin/AdminExams';
-//import AdminQuestionBank from './pages/admin/AdminQuestionBank';
-//import AdminQuestionForm from './pages/admin/AdminQuestionForm';
+import AdminQuestionBank from './pages/admin/AdminQuestionBank';
+import AdminQuestionForm from './pages/admin/AdminQuestionForm'; // 1. 导入表单组件
 
 function App() {
     return (
@@ -41,9 +41,10 @@ function App() {
                     <Route path="/admin/subjects" element={<AdminSubjects />} />
                     <Route path="/admin/exams" element={<AdminExams />} />
                     <Route path="/admin/exams/:examId/questions" element={<AdminExamQuestions />} />
-                    {/*<Route path="/admin/questions" element={<AdminQuestionBank />} />*/}
-                    {/*<Route path="/admin/questions/new" element={<AdminQuestionForm />} />*/}
-                    {/*<Route path="/admin/questions/edit/:questionId" element={<AdminQuestionForm />} />*/}
+                    <Route path="/admin/questions" element={<AdminQuestionBank />} />
+                    {/* 2. 添加新路由 */}
+                    <Route path="/admin/questions/new" element={<AdminQuestionForm />} />
+                    <Route path="/admin/questions/edit/:questionId" element={<AdminQuestionForm />} />
                 </Routes>
             </Router>
         </AuthProvider>
